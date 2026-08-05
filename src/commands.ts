@@ -124,6 +124,7 @@ export function registerCommands(host: CommandHost): void {
 		id: "select-sentence",
 		name: "Select current sentence",
 		icon: "scan-line",
+		hotkeys: [{ modifiers: ["Mod"], key: "R" }],
 		editorCallback: sentenceAction(host, selectSentence),
 	});
 
@@ -131,7 +132,7 @@ export function registerCommands(host: CommandHost): void {
 		id: "select-paragraph",
 		name: "Select current line",
 		icon: "scan-text",
+		hotkeys: [{ modifiers: ["Mod"], key: "G" }],
 		editorCallback: selectCurrentLine,
 	});
 }
-

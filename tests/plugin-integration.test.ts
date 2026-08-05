@@ -116,6 +116,12 @@ describe("plugin integration", () => {
 		expect(mockState.commands[0].hotkeys).toEqual([
 			{ modifiers: ["Mod", "Alt"], key: "E" },
 		]);
+		expect(mockState.commands[11].hotkeys).toEqual([
+			{ modifiers: ["Mod"], key: "R" },
+		]);
+		expect(mockState.commands[12].hotkeys).toEqual([
+			{ modifiers: ["Mod"], key: "G" },
+		]);
 		expect(mockState.ribbonIcons).toEqual(["highlighter"]);
 		expect(mockState.savedData).toHaveLength(1);
 	});

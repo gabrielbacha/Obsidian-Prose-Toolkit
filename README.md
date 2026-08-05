@@ -40,6 +40,8 @@ Prose Toolkit combines sentence-aware editing commands with a flexible Markdown 
 | Toggle line bold highlight | `Mod+Shift+P` |
 | Delete to sentence start | `Mod+Shift+Backspace` |
 | Delete to sentence end | `Mod+Shift+Delete` |
+| Select current sentence | `Mod+R` |
+| Select current line | `Mod+G` |
 
 `Mod` means Command on macOS and Ctrl on Windows or Linux. Every shortcut can be changed under **Settings → Hotkeys**.
 
