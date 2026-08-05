@@ -1,0 +1,11 @@
+{
+	"id": "prose-toolkit",
+	"name": "Prose Toolkit",
+	"version": "1.0.0",
+	"minAppVersion": "1.0.0",
+	"description": "Navigate, format, and extract sentences and highlights without leaving your note.",
+	"author": "Gabriel",
+	"authorUrl": "https://github.com/gabrielbacha",
+	"isDesktopOnly": false
+}
+
