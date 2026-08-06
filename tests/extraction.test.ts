@@ -211,10 +211,10 @@ describe("extraction coordinator", () => {
 
 	it("continues after an individual exploded note fails", async () => {
 		const memory = memoryEnvironment();
-		const create = memory.environment.createFile;
+		const originalEnvironment = { ...memory.environment };
 		memory.environment.createFile = async (path, contents) => {
 			if (path === "Broken.md") throw new Error("invalid path");
-			await create(path, contents);
+			await originalEnvironment.createFile(path, contents);
 		};
 		const result = await coordinateExtraction(
 			"==Broken== ==Working==",

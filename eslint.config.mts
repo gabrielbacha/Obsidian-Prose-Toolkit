@@ -1,28 +1,42 @@
-import eslint from "@eslint/js";
+import tsparser from "@typescript-eslint/parser";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import obsidianmd from "eslint-plugin-obsidianmd";
-import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-	{ ignores: ["main.js", "coverage/", "node_modules/"] },
-	eslint.configs.recommended,
-	...tseslint.configs.recommended,
+export default defineConfig([
+	{ ignores: ["main.js", "coverage/", "node_modules/", "eslint.config.mts"] },
+	...obsidianmd.configs.recommended,
 	{
 		files: ["**/*.ts"],
-		plugins: { obsidianmd },
 		languageOptions: {
+			parser: tsparser,
+			parserOptions: {
+				project: "./tsconfig.json",
+				tsconfigRootDir: import.meta.dirname,
+			},
 			globals: { ...globals.browser, ...globals.node },
 		},
 		rules: {
 			"@typescript-eslint/no-explicit-any": "error",
 			"@typescript-eslint/no-non-null-assertion": "off",
-			"obsidianmd/ui/sentence-case": "warn"
-		}
+			"obsidianmd/commands/no-default-hotkeys": "off",
+			"obsidianmd/ui/sentence-case": "warn",
+		},
 	},
 	{
 		files: ["**/*.mjs"],
 		languageOptions: {
 			globals: { ...globals.node },
 		},
-	}
-);
+		rules: {
+			"obsidianmd/no-nodejs-modules": "off",
+			"obsidianmd/rule-custom-message": "off",
+		},
+	},
+	{
+		files: ["tests/**/*.ts"],
+		rules: {
+			"obsidianmd/prefer-create-el": "off",
+		},
+	},
+]);

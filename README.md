@@ -4,6 +4,8 @@ Navigate, format, and extract prose in Obsidian without leaving your note.
 
 Prose Toolkit combines sentence-aware editing commands with a flexible Markdown highlight extractor. It works locally, makes no network requests, collects no telemetry, and supports desktop and mobile Obsidian.
 
+Requires Obsidian 1.13.0 or later.
+
 ## Features
 
 ### Navigate and select prose

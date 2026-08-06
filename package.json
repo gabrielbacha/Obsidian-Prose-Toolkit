@@ -1,6 +1,6 @@
 {
 	"name": "prose-toolkit",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Navigate, format, and extract prose in Obsidian.",
 	"main": "main.js",
 	"type": "module",

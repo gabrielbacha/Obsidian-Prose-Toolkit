@@ -6,14 +6,25 @@ interface RegisteredCommand {
 	hotkeys?: Array<{ modifiers: string[]; key: string }>;
 }
 
-const mockState = vi.hoisted(() => ({
-	app: null as unknown,
-	loadedData: null as unknown,
-	savedData: [] as unknown[],
-	commands: [] as RegisteredCommand[],
-	notices: [] as string[],
-	ribbonIcons: [] as string[],
-}));
+const mockState = vi.hoisted(
+	(): {
+		app: unknown;
+		loadedData: unknown;
+		savedData: unknown[];
+		commands: RegisteredCommand[];
+		notices: string[];
+		ribbonIcons: string[];
+		settingTabs: unknown[];
+	} => ({
+		app: null,
+		loadedData: null,
+		savedData: [],
+		commands: [],
+		notices: [],
+		ribbonIcons: [],
+		settingTabs: [],
+	}),
+);
 
 vi.mock("obsidian", () => {
 	class Plugin {
@@ -28,7 +39,9 @@ vi.mock("obsidian", () => {
 			mockState.commands.push(command);
 			return command;
 		}
-		addSettingTab() {}
+		addSettingTab(tab: unknown) {
+			mockState.settingTabs.push(tab);
+		}
 		addRibbonIcon(icon: string) {
 			mockState.ribbonIcons.push(icon);
 			return document.createElement("div");
@@ -38,8 +51,12 @@ vi.mock("obsidian", () => {
 	class PluginSettingTab {
 		app: unknown;
 		containerEl = document.createElement("div");
+		updateCalls = 0;
 		constructor(app: unknown) {
 			this.app = app;
+		}
+		update() {
+			this.updateCalls += 1;
 		}
 	}
 
@@ -90,6 +107,7 @@ describe("plugin integration", () => {
 		mockState.commands.length = 0;
 		mockState.notices.length = 0;
 		mockState.ribbonIcons.length = 0;
+		mockState.settingTabs.length = 0;
 	});
 
 	it("loads and registers the complete stable command surface", async () => {
@@ -114,6 +132,12 @@ describe("plugin integration", () => {
 			"select-paragraph",
 		]);
 		expect(mockState.commands[0].hotkeys).toBeUndefined();
+		expect(mockState.commands.slice(1, 7).every((command) => command.hotkeys)).toBe(
+			true,
+		);
+		expect(mockState.commands.slice(7, 11).every((command) => !command.hotkeys)).toBe(
+			true,
+		);
 		expect(mockState.commands[11].hotkeys).toEqual([
 			{ modifiers: ["Mod"], key: "R" },
 		]);
@@ -121,7 +145,46 @@ describe("plugin integration", () => {
 			{ modifiers: ["Mod"], key: "G" },
 		]);
 		expect(mockState.ribbonIcons).toEqual(["highlighter"]);
+		expect(mockState.settingTabs).toHaveLength(1);
 		expect(mockState.savedData).toHaveLength(1);
+	});
+
+	it("provides searchable declarative settings with live dependency rules", async () => {
+		const context = createApp();
+		mockState.app = context.app;
+		const plugin = new ProseToolkitPlugin(context.app as never, {} as never);
+		await plugin.onload();
+		const settingTab = mockState.settingTabs[0] as {
+			getSettingDefinitions(): Array<{
+				heading?: string;
+				items?: Array<{
+					name: string;
+					control?: { disabled?: boolean | (() => boolean) };
+				}>;
+			}>;
+			setControlValue(key: string, value: unknown): Promise<void>;
+			updateCalls: number;
+		};
+		const definitions = settingTab.getSettingDefinitions();
+
+		expect(definitions.map((definition) => definition.heading)).toEqual([
+			"Sentence navigation",
+			"Highlight extraction",
+			"Exploded notes",
+		]);
+		const explodeControl = definitions[2].items?.[0].control;
+		expect(
+			typeof explodeControl?.disabled === "function" && explodeControl.disabled(),
+		).toBe(true);
+
+		await settingTab.setControlValue("createLinks", true);
+		await settingTab.setControlValue("createNewFile", true);
+		expect(plugin.settings.createLinks).toBe(true);
+		expect(plugin.settings.createNewFile).toBe(true);
+		expect(
+			typeof explodeControl?.disabled === "function" && explodeControl.disabled(),
+		).toBe(false);
+		expect(settingTab.updateCalls).toBe(2);
 	});
 
 	it("reports a missing Markdown view without touching the vault", async () => {

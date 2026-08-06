@@ -1,4 +1,7 @@
-import { Notice, PluginSettingTab, Setting } from "obsidian";
+import {
+	PluginSettingTab,
+	type SettingDefinitionItem,
+} from "obsidian";
 import {
 	DEFAULT_SENTENCE_REGEX,
 	isValidSentenceRegex,
@@ -6,6 +9,22 @@ import {
 } from "./settings";
 
 const NOTE_TITLE_TOKEN = `$${"NOTE_TITLE"}`;
+
+type SettingKey = keyof ProseToolkitSettings;
+type BooleanSettingKey = {
+	[K in SettingKey]: ProseToolkitSettings[K] extends boolean ? K : never;
+}[SettingKey];
+
+const BOOLEAN_SETTING_KEYS = new Set<SettingKey>([
+	"addFootnotes",
+	"useBoldForHighlights",
+	"createLinks",
+	"autoCapitalize",
+	"createNewFile",
+	"explodeIntoNotes",
+	"openExplodedNotes",
+	"createContextualQuotes",
+]);
 
 export interface SettingsHost {
 	app: PluginSettingTab["app"];
@@ -21,180 +40,166 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 		this.host = host;
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-		new Setting(containerEl).setName("Sentence navigation").setHeading();
-
-		const regexSetting = new Setting(containerEl)
-			.setName("Sentence regular expression")
-			.setDesc("Regular expression used to recognize a sentence.")
-			.addTextArea((textArea) => {
-				textArea
-					.setPlaceholder(DEFAULT_SENTENCE_REGEX)
-					.setValue(this.host.settings.sentenceRegexSource)
-					.onChange(async (value) => {
-						if (!isValidSentenceRegex(value)) {
-							new Notice("Sentence regular expression is invalid.");
-							return;
-						}
-						this.host.settings.sentenceRegexSource = value;
-						await this.host.saveSettings();
-					});
-				textArea.inputEl.rows = 3;
-			});
-
-		new Setting(containerEl)
-			.setName("Reset sentence expression")
-			.setDesc("Restore the default sentence matching behavior.")
-			.addButton((button) =>
-				button.setButtonText("Reset").onClick(async () => {
-					this.host.settings.sentenceRegexSource = DEFAULT_SENTENCE_REGEX;
-					const component = regexSetting.components[0];
-					if (component && "setValue" in component) {
-						(component as { setValue(value: string): unknown }).setValue(
-							DEFAULT_SENTENCE_REGEX,
-						);
-					}
-					await this.host.saveSettings();
-				}),
-			);
-
-		new Setting(containerEl).setName("Highlight extraction").setHeading();
-
-		new Setting(containerEl)
-			.setName("Heading text")
-			.setDesc(
-				`Optional level-two heading. Use ${NOTE_TITLE_TOKEN} for the source note name.`,
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder(`Highlights for ${NOTE_TITLE_TOKEN}`)
-					.setValue(this.host.settings.headlineText)
-					.onChange(async (value) => {
-						this.host.settings.headlineText = value;
-						await this.host.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Output format")
-			.setDesc("Separate highlights as paragraphs or format them as a bullet list.")
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption("paragraphs", "Paragraphs")
-					.addOption("bullets", "Bullet list")
-					.setValue(this.host.settings.outputFormat)
-					.onChange(async (value) => {
-						this.host.settings.outputFormat =
-							value === "bullets" ? "bullets" : "paragraphs";
-						await this.host.saveSettings();
-					}),
-			);
-
-		this.addToggle(
-			"Extract bold text",
-			"Also treat paired **bold text** as a highlight.",
-			"useBoldForHighlights",
-		);
-		this.addToggle(
-			"Add source footnotes",
-			"Add a source-note footnote reference to every extracted highlight.",
-			"addFootnotes",
-		);
-		this.addToggle(
-			"Auto-capitalize",
-			"Capitalize the first character of each extracted highlight.",
-			"autoCapitalize",
-		);
-		this.addToggle(
-			"Create links",
-			"Turn each highlight into a link to a note with the same name.",
-			"createLinks",
-			true,
-		);
-		this.addToggle(
-			"Create highlights note",
-			"Create and open a new note containing the extracted highlights.",
-			"createNewFile",
-			true,
-		);
-
-		new Setting(containerEl).setName("Exploded notes").setHeading();
-		const prerequisites =
-			this.host.settings.createLinks && this.host.settings.createNewFile;
-		const explode = new Setting(containerEl)
-			.setName("Create one note per highlight")
-			.setDesc(
-				prerequisites
-					? "Create a linked note for every highlight without overwriting existing notes."
-					: "Enable both Create links and Create highlights note first.",
-			)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.host.settings.explodeIntoNotes)
-					.setDisabled(!prerequisites)
-					.onChange(async (value) => {
-						this.host.settings.explodeIntoNotes = value;
-						if (!value) this.host.settings.openExplodedNotes = false;
-						await this.host.saveSettings();
-						this.display();
-					});
-			});
-		if (!prerequisites) explode.setDisabled(true);
-
-		const explodeEnabled = prerequisites && this.host.settings.explodeIntoNotes;
-		this.addToggle(
-			"Open created notes",
-			"Open each exploded note after it is created.",
-			"openExplodedNotes",
-			false,
-			!explodeEnabled,
-		);
-		this.addToggle(
-			"Use contextual quotes",
-			"Quote the complete source line instead of only the extracted text.",
-			"createContextualQuotes",
-			false,
-			!explodeEnabled,
-		);
+	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
+		return [
+			{
+				type: "group",
+				heading: "Sentence navigation",
+				items: [
+					{
+						name: "Sentence regular expression",
+						desc: "Regular expression used to recognize a sentence.",
+						control: {
+							type: "textarea",
+							key: "sentenceRegexSource",
+							defaultValue: DEFAULT_SENTENCE_REGEX,
+							placeholder: DEFAULT_SENTENCE_REGEX,
+							rows: 3,
+							validate: (value) =>
+								isValidSentenceRegex(value)
+									? undefined
+									: "Enter a valid, non-empty regular expression.",
+						},
+					},
+					{
+						name: "Reset sentence expression",
+						desc: "Restore the default sentence matching behavior.",
+						action: () => {
+							this.host.settings.sentenceRegexSource = DEFAULT_SENTENCE_REGEX;
+							void this.host.saveSettings().then(() => this.update());
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Highlight extraction",
+				items: [
+					{
+						name: "Heading text",
+						desc: `Optional level-two heading. Use ${NOTE_TITLE_TOKEN} for the source note name.`,
+						control: {
+							type: "text",
+							key: "headlineText",
+							defaultValue: "",
+							placeholder: `Highlights for ${NOTE_TITLE_TOKEN}`,
+						},
+					},
+					{
+						name: "Output format",
+						desc: "Separate highlights as paragraphs or format them as a bullet list.",
+						control: {
+							type: "dropdown",
+							key: "outputFormat",
+							defaultValue: "paragraphs",
+							options: {
+								paragraphs: "Paragraphs",
+								bullets: "Bullet list",
+							},
+						},
+					},
+					this.toggleDefinition(
+						"Extract bold text",
+						"Also treat paired **bold text** as a highlight.",
+						"useBoldForHighlights",
+					),
+					this.toggleDefinition(
+						"Add source footnotes",
+						"Add a source-note footnote reference to every extracted highlight.",
+						"addFootnotes",
+					),
+					this.toggleDefinition(
+						"Auto-capitalize",
+						"Capitalize the first character of each extracted highlight.",
+						"autoCapitalize",
+					),
+					this.toggleDefinition(
+						"Create links",
+						"Turn each highlight into a link to a note with the same name.",
+						"createLinks",
+					),
+					this.toggleDefinition(
+						"Create highlights note",
+						"Create and open a new note containing the extracted highlights.",
+						"createNewFile",
+					),
+				],
+			},
+			{
+				type: "group",
+				heading: "Exploded notes",
+				items: [
+					this.toggleDefinition(
+						"Create one note per highlight",
+						"Create a linked note for every highlight without overwriting existing notes.",
+						"explodeIntoNotes",
+						() => !this.hasExplodePrerequisites(),
+					),
+					this.toggleDefinition(
+						"Open created notes",
+						"Open each exploded note after it is created.",
+						"openExplodedNotes",
+						() => !this.isExplodeEnabled(),
+					),
+					this.toggleDefinition(
+						"Use contextual quotes",
+						"Quote the complete source line instead of only the extracted text.",
+						"createContextualQuotes",
+						() => !this.isExplodeEnabled(),
+					),
+				],
+			},
+		];
 	}
 
-	private addToggle(
+	getControlValue(key: string): unknown {
+		return key in this.host.settings
+			? this.host.settings[key as SettingKey]
+			: undefined;
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		if (key === "sentenceRegexSource" || key === "headlineText") {
+			if (typeof value !== "string") return;
+			if (key === "sentenceRegexSource" && !isValidSentenceRegex(value)) return;
+			this.host.settings[key] = value;
+		} else if (key === "outputFormat") {
+			if (value !== "paragraphs" && value !== "bullets") return;
+			this.host.settings.outputFormat = value;
+		} else if (BOOLEAN_SETTING_KEYS.has(key as SettingKey)) {
+			if (typeof value !== "boolean") return;
+			this.host.settings[key as BooleanSettingKey] = value;
+		} else {
+			return;
+		}
+
+		await this.host.saveSettings();
+		this.update();
+	}
+
+	private toggleDefinition(
 		name: string,
-		description: string,
-		key: keyof Pick<
-			ProseToolkitSettings,
-			| "useBoldForHighlights"
-			| "addFootnotes"
-			| "autoCapitalize"
-			| "createLinks"
-			| "createNewFile"
-			| "openExplodedNotes"
-			| "createContextualQuotes"
-		>,
-		rerender = false,
-		disabled = false,
-	): void {
-		new Setting(this.containerEl)
-			.setName(name)
-			.setDesc(description)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.host.settings[key])
-					.setDisabled(disabled)
-					.onChange(async (value) => {
-						this.host.settings[key] = value;
-						if (
-							(key === "createLinks" || key === "createNewFile") &&
-							!value
-						) {
-							this.host.settings.explodeIntoNotes = false;
-							this.host.settings.openExplodedNotes = false;
-						}
-						await this.host.saveSettings();
-						if (rerender) this.display();
-					}),
-			);
+		desc: string,
+		key: BooleanSettingKey,
+		disabled?: () => boolean,
+	) {
+		return {
+			name,
+			desc,
+			control: {
+				type: "toggle" as const,
+				key,
+				defaultValue: false,
+				disabled,
+			},
+		};
+	}
+
+	private hasExplodePrerequisites(): boolean {
+		return this.host.settings.createLinks && this.host.settings.createNewFile;
+	}
+
+	private isExplodeEnabled(): boolean {
+		return this.hasExplodePrerequisites() && this.host.settings.explodeIntoNotes;
 	}
 }
