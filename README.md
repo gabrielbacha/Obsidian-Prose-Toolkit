@@ -70,12 +70,6 @@ Copy `main.js`, `manifest.json`, and `styles.css` if present into:
 
 Reload Obsidian and enable **Prose Toolkit**.
 
-## Migrating from locally modified plugins
-
-Prose Toolkit supersedes Gabriel's private `G-extract-highlights-plugin` and `G-obsidian-sentence-navigator` builds. Disable those plugins after verifying Prose Toolkit. Hotkeys belong to a plugin ID, so review **Settings → Hotkeys** after migration.
-
-The private legacy artifacts are not part of this repository. Extraction was independently implemented from documented behavior. Sentence navigation is adapted from the MIT-licensed Sentence Navigator project; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
 ## Development
 
 ```bash
