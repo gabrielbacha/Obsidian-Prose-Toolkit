@@ -33,7 +33,7 @@ Prose Toolkit combines sentence-aware editing commands with a flexible Markdown 
 
 | Action | Shortcut |
 | --- | --- |
-| Extract highlights | `Mod+Alt+E` |
+| Extract highlights | None |
 | Toggle sentence highlight | `Mod+Shift+E` |
 | Toggle sentence bold | `Mod+Shift+B` |
 | Toggle sentence bold highlight | `Mod+Shift+R` |

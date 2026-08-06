@@ -31,7 +31,6 @@ export function registerCommands(host: CommandHost): void {
 		id: "shortcut-extract-highlights",
 		name: "Extract highlights",
 		icon: "highlighter",
-		hotkeys: [{ modifiers: ["Mod", "Alt"], key: "E" }],
 		callback: () => host.extractActiveNote(),
 	});
 

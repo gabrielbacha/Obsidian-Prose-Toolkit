@@ -113,9 +113,7 @@ describe("plugin integration", () => {
 			"select-sentence",
 			"select-paragraph",
 		]);
-		expect(mockState.commands[0].hotkeys).toEqual([
-			{ modifiers: ["Mod", "Alt"], key: "E" },
-		]);
+		expect(mockState.commands[0].hotkeys).toBeUndefined();
 		expect(mockState.commands[11].hotkeys).toEqual([
 			{ modifiers: ["Mod"], key: "R" },
 		]);
