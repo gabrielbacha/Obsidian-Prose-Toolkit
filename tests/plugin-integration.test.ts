@@ -168,11 +168,12 @@ describe("plugin integration", () => {
 		const definitions = settingTab.getSettingDefinitions();
 
 		expect(definitions.map((definition) => definition.heading)).toEqual([
+			"About and feedback",
 			"Sentence navigation",
 			"Highlight extraction",
 			"Exploded notes",
 		]);
-		const explodeControl = definitions[2].items?.[0].control;
+		const explodeControl = definitions[3].items?.[0].control;
 		expect(
 			typeof explodeControl?.disabled === "function" && explodeControl.disabled(),
 		).toBe(true);

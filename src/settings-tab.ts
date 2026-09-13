@@ -2,6 +2,7 @@ import {
 	PluginSettingTab,
 	type SettingDefinitionItem,
 } from "obsidian";
+import { ABOUT_AND_FEEDBACK, BUG_REPORT_URL, FEATURE_REQUEST_URL, WEBSITE_URL } from "./external-links";
 import {
 	DEFAULT_SENTENCE_REGEX,
 	isValidSentenceRegex,
@@ -42,6 +43,24 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
+			{
+				type: "group",
+				heading: ABOUT_AND_FEEDBACK.heading,
+				items: [
+					{
+						name: ABOUT_AND_FEEDBACK.name,
+						desc: ABOUT_AND_FEEDBACK.description,
+						render: (setting) => {
+							setting
+								.setName(ABOUT_AND_FEEDBACK.name)
+								.setDesc(ABOUT_AND_FEEDBACK.description)
+								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.websiteLabel).setCta().onClick(() => openExternalLink(WEBSITE_URL)))
+								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.featureRequestLabel).onClick(() => openExternalLink(FEATURE_REQUEST_URL)))
+								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.bugReportLabel).onClick(() => openExternalLink(BUG_REPORT_URL)));
+						},
+					},
+				],
+			},
 			{
 				type: "group",
 				heading: "Sentence navigation",
@@ -202,4 +221,8 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 	private isExplodeEnabled(): boolean {
 		return this.hasExplodePrerequisites() && this.host.settings.explodeIntoNotes;
 	}
+}
+
+function openExternalLink(url: string): void {
+	window.open(url, "_blank", "noopener,noreferrer");
 }

@@ -2,6 +2,8 @@
 
 Navigate, format, and extract prose in Obsidian without leaving your note.
 
+> Created by [Gabriel Bacha](https://www.gabrielbacha.com/?utm_source=obsidian_community&utm_medium=referral&utm_campaign=obsidian_assets&utm_content=prose_toolkit_readme_header) · [Visit gabrielbacha.com](https://www.gabrielbacha.com/?utm_source=obsidian_community&utm_medium=referral&utm_campaign=obsidian_assets&utm_content=prose_toolkit_readme_header) · [Request a feature](https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml)
+
 Prose Toolkit combines sentence-aware editing commands with a flexible Markdown highlight extractor. It works locally, makes no network requests, collects no telemetry, and supports desktop and mobile Obsidian.
 
 Requires Obsidian 1.13.0 or later.

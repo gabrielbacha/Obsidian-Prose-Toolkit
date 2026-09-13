@@ -20,7 +20,7 @@
 		"highlights",
 		"sentence-navigation"
 	],
-	"author": "Gabriel",
+	"author": "Gabriel Bacha",
 	"license": "MIT",
 	"devDependencies": {
 		"@eslint/js": "^9.39.4",

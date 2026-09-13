@@ -31,3 +31,4 @@ jobs:
             main.js
             manifest.json
           generate_release_notes: true
+          body: "More software, tools, and ideas: [gabrielbacha.com](https://www.gabrielbacha.com/?utm_source=github&utm_medium=referral&utm_campaign=obsidian_assets&utm_content=prose_toolkit_release)"
