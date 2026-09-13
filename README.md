@@ -2,7 +2,16 @@
 
 Navigate, format, and extract prose in Obsidian without leaving your note.
 
-> Created by [Gabriel Bacha](https://www.gabrielbacha.com/?utm_source=obsidian_community&utm_medium=referral&utm_campaign=obsidian_assets&utm_content=prose_toolkit_readme_header) · [Visit gabrielbacha.com](https://www.gabrielbacha.com/?utm_source=obsidian_community&utm_medium=referral&utm_campaign=obsidian_assets&utm_content=prose_toolkit_readme_header) · [Request a feature](https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml)
+<div align="center">
+  <h3>Created by <a href="https://github.com/gabrielbacha">Gabriel Bacha</a></h3>
+  <p>
+    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
+  </p>
+</div>
 
 Prose Toolkit combines sentence-aware editing commands with a flexible Markdown highlight extractor. It works locally, makes no network requests, collects no telemetry, and supports desktop and mobile Obsidian.
 
@@ -95,3 +104,16 @@ Release tags must exactly match the version in `manifest.json`. Attach `main.js`
 ## License
 
 MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+---
+
+<div align="center">
+  <h3>Created by <a href="https://github.com/gabrielbacha">Gabriel Bacha</a></h3>
+  <p>
+    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
+  </p>
+</div>

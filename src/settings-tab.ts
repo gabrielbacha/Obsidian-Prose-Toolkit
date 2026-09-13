@@ -2,7 +2,7 @@ import {
 	PluginSettingTab,
 	type SettingDefinitionItem,
 } from "obsidian";
-import { ABOUT_AND_FEEDBACK, BUG_REPORT_URL, FEATURE_REQUEST_URL, WEBSITE_URL } from "./external-links";
+import { ABOUT_AND_FEEDBACK, BUG_REPORT_URL, FEATURE_REQUEST_URL, MORE_PLUGINS_URL, WEBSITE_URL } from "./external-links";
 import {
 	DEFAULT_SENTENCE_REGEX,
 	isValidSentenceRegex,
@@ -55,6 +55,7 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 								.setName(ABOUT_AND_FEEDBACK.name)
 								.setDesc(ABOUT_AND_FEEDBACK.description)
 								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.websiteLabel).setCta().onClick(() => openExternalLink(WEBSITE_URL)))
+								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.morePluginsLabel).onClick(() => openExternalLink(MORE_PLUGINS_URL)))
 								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.featureRequestLabel).onClick(() => openExternalLink(FEATURE_REQUEST_URL)))
 								.addButton((button) => button.setButtonText(ABOUT_AND_FEEDBACK.bugReportLabel).onClick(() => openExternalLink(BUG_REPORT_URL)));
 						},
