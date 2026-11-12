@@ -1,5 +1,6 @@
 import {
 	PluginSettingTab,
+	Modal,
 	type SettingDefinitionItem,
 } from "obsidian";
 import { ABOUT_AND_FEEDBACK, BUG_REPORT_URL, FEATURE_REQUEST_URL, MORE_PLUGINS_URL, WEBSITE_URL } from "./external-links";
@@ -31,6 +32,9 @@ export interface SettingsHost {
 	app: PluginSettingTab["app"];
 	settings: ProseToolkitSettings;
 	saveSettings(): Promise<void>;
+	readonly settingsRecoveryReason?: string | null;
+	snapshotSettingsRecovery?(): Promise<string>;
+	recoverDefaultSettings?(expectedRaw?: string): Promise<void>;
 }
 
 export class ProseToolkitSettingTab extends PluginSettingTab {
@@ -62,6 +66,24 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 					},
 				],
 			},
+			...(this.host.settingsRecoveryReason ? [{
+				type: "group" as const, heading: "Saved settings recovery",
+				items: [{
+					name: "Restore default settings", desc: this.host.settingsRecoveryReason + " Recovery keeps the original data.",
+					action: async () => {
+						const expectedRaw = await this.host.snapshotSettingsRecovery?.();
+						const modal = new Modal(this.host.app);
+						modal.setTitle("Restore default settings?");
+						modal.contentEl.createEl("p", { text: "The original settings will be kept in a recovery file. Defaults replace the current settings only if that file has not changed." });
+						modal.contentEl.createEl("button", { text: "Cancel" }).addEventListener("click", () => modal.close());
+						modal.contentEl.createEl("button", { text: "Restore defaults" }).addEventListener("click", () => {
+							modal.close();
+							void this.host.recoverDefaultSettings?.(expectedRaw).then(() => this.update(), () => this.update());
+						});
+						modal.open();
+					},
+				}],
+			}] : []),
 			{
 				type: "group",
 				heading: "Sentence navigation",
@@ -86,7 +108,7 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 						desc: "Restore the default sentence matching behavior.",
 						action: () => {
 							this.host.settings.sentenceRegexSource = DEFAULT_SENTENCE_REGEX;
-							void this.host.saveSettings().then(() => this.update());
+							void this.host.saveSettings().then(() => this.update(), () => this.update());
 						},
 					},
 				],
@@ -193,8 +215,8 @@ export class ProseToolkitSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		await this.host.saveSettings();
-		this.update();
+		try { await this.host.saveSettings(); }
+		finally { this.update(); }
 	}
 
 	private toggleDefinition(

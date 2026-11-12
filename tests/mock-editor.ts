@@ -15,6 +15,8 @@ export class MockEditor {
 		return this as unknown as Editor;
 	}
 
+	listSelections() { return [{ anchor: { ...this.anchor }, head: { ...this.head } }]; }
+
 	getValue(): string {
 		return this.lines.join("\n");
 	}

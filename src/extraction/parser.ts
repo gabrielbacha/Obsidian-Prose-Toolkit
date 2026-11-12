@@ -1,116 +1,72 @@
+import { markdownContext } from "./markdown-context";
+
 export type HighlightKind = "equals" | "mark" | "bold";
+export interface ExtractedHighlight { kind: HighlightKind; content: string; context: string; start: number; end: number }
+interface Opening { kind: HighlightKind; start: number; length: number }
+interface Scanner { kind: HighlightKind; delimiter?: string; expression?: RegExp; next?: Opening | null; exhausted?: boolean }
 
-export interface ExtractedHighlight {
-	kind: HighlightKind;
-	content: string;
-	context: string;
-	start: number;
-	end: number;
-}
-
-interface Candidate extends ExtractedHighlight {
-	priority: number;
-}
-
-function normalizeWhitespace(value: string): string {
-	return value.replace(/\s+/g, " ").trim();
-}
-
-function contextFor(text: string, start: number, end: number): string {
-	const lineStart = text.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
-	const nextBreak = text.indexOf("\n", end);
-	const lineEnd = nextBreak === -1 ? text.length : nextBreak;
-	return normalizeWhitespace(text.slice(lineStart, lineEnd));
-}
-
-function scanSymmetricDelimiter(
-	text: string,
-	delimiter: string,
-	kind: HighlightKind,
-	priority: number,
-): Candidate[] {
-	const candidates: Candidate[] = [];
+/** Process the leftmost eligible opening once; accepted outer spans suppress nested candidates. */
+export function extractHighlights(text: string, includeBold: boolean, maximum = Infinity): ExtractedHighlight[] {
+	const context = markdownContext(text), accepted: ExtractedHighlight[] = [];
+	const scanners: Scanner[] = [
+		{ kind: "equals", delimiter: "==" },
+		{ kind: "mark", expression: /<mark(?:\s+(?:[^<>"']|"[^"]*"|'[^']*')*)?\s*>/giu },
+		...(includeBold ? [{ kind: "bold" as const, delimiter: "**" }] : []),
+	];
+	const closingMark = /<\/mark\s*>/giu;
+	function nextOpening(scanner: Scanner, cursor: number): Opening | null {
+		if (scanner.exhausted) return null;
+		if (scanner.next && scanner.next.start >= cursor) return scanner.next;
+		if (scanner.delimiter) {
+			let start = text.indexOf(scanner.delimiter, cursor);
+			while (start >= 0) {
+				const length = scanner.delimiter.length;
+				if (context.eligible(start, length) && !/\s/u.test(text[start + length] ?? "")) {
+					scanner.next = { kind: scanner.kind, start, length }; return scanner.next;
+				}
+				start = text.indexOf(scanner.delimiter, start + length);
+			}
+		} else {
+			const expression = scanner.expression!;
+			expression.lastIndex = cursor;
+			let match: RegExpExecArray | null;
+			while ((match = expression.exec(text)) !== null) {
+				if (context.eligible(match.index, 1)) {
+					scanner.next = { kind: scanner.kind, start: match.index, length: match[0].length }; return scanner.next;
+				}
+			}
+		}
+		scanner.exhausted = true; scanner.next = null; return null;
+	}
 	let cursor = 0;
 	while (cursor < text.length) {
-		const start = text.indexOf(delimiter, cursor);
-		if (start === -1) break;
-		const contentStart = start + delimiter.length;
-		const close = text.indexOf(delimiter, contentStart);
-		if (close === -1) break;
-		const end = close + delimiter.length;
-		const content = normalizeWhitespace(text.slice(contentStart, close));
-		if (content.length > 0) {
-			candidates.push({
-				kind,
-				content,
-				context: contextFor(text, start, end),
-				start,
-				end,
-				priority,
-			});
+		let selected: { scanner: Scanner; opening: Opening } | null = null;
+		for (const scanner of scanners) {
+			const opening = nextOpening(scanner, cursor);
+			if (opening && (!selected || opening.start < selected.opening.start)) selected = { scanner, opening };
+		}
+		if (!selected) break;
+		const { scanner, opening } = selected, contentStart = opening.start + opening.length;
+		let close = -1, closeLength = 0;
+		if (scanner.delimiter) {
+			closeLength = scanner.delimiter.length;
+			close = text.indexOf(scanner.delimiter, contentStart);
+			while (close >= 0 && (!context.eligible(close, closeLength) || /\s/u.test(text[close - 1] ?? ""))) close = text.indexOf(scanner.delimiter, close + closeLength);
+		} else {
+			closingMark.lastIndex = contentStart;
+			let match: RegExpExecArray | null;
+			while ((match = closingMark.exec(text)) !== null) {
+				if (context.eligible(match.index, 1)) { close = match.index; closeLength = match[0].length; break; }
+			}
+		}
+		scanner.next = null;
+		if (close < 0 || !context.sameBlock(opening.start, close + closeLength)) { cursor = contentStart; continue; }
+		const end = close + closeLength, content = text.slice(contentStart, close).replace(/\s+/gu, " ").trim();
+		if (content) {
+			if (accepted.length >= maximum) throw new Error("This note has too many highlights. Split it first.");
+			accepted.push({ kind: opening.kind, content, context: context.context(opening.start, end), start: opening.start, end });
 		}
 		cursor = end;
-	}
-	return candidates;
-}
-
-function scanMarkTags(text: string): Candidate[] {
-	const candidates: Candidate[] = [];
-	const opening = /<mark(?:\s[^>]*)?>/giu;
-	const closing = /<\/mark\s*>/giu;
-	let match: RegExpExecArray | null;
-	while ((match = opening.exec(text)) !== null) {
-		closing.lastIndex = match.index + match[0].length;
-		const close = closing.exec(text);
-		if (!close) continue;
-		const start = match.index;
-		const end = close.index + close[0].length;
-		const content = normalizeWhitespace(
-			text.slice(match.index + match[0].length, close.index),
-		);
-		if (content.length > 0) {
-			candidates.push({
-				kind: "mark",
-				content,
-				context: contextFor(text, start, end),
-				start,
-				end,
-				priority: 0,
-			});
-		}
-		opening.lastIndex = end;
-	}
-	return candidates;
-}
-
-export function extractHighlights(
-	text: string,
-	includeBold: boolean,
-): ExtractedHighlight[] {
-	const candidates = [
-		...scanSymmetricDelimiter(text, "==", "equals", 0),
-		...scanMarkTags(text),
-		...(includeBold
-			? scanSymmetricDelimiter(text, "**", "bold", 1)
-			: []),
-	].sort((left, right) => {
-		if (left.start !== right.start) return left.start - right.start;
-		if (left.priority !== right.priority) return left.priority - right.priority;
-		return right.end - left.end;
-	});
-
-	const accepted: ExtractedHighlight[] = [];
-	let occupiedUntil = -1;
-	for (const candidate of candidates) {
-		if (candidate.start < occupiedUntil) continue;
-		accepted.push({
-			kind: candidate.kind,
-			content: candidate.content,
-			context: candidate.context,
-			start: candidate.start,
-			end: candidate.end,
-		});
-		occupiedUntil = candidate.end;
 	}
 	return accepted;
 }

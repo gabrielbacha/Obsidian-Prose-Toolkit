@@ -92,3 +92,34 @@ describe("sentence actions", () => {
 		expect(mock.getCursor()).toEqual({ line: 0, ch: 18 });
 	});
 });
+
+describe("shared Markdown prose range", () => {
+	it.each(["- ", "12) ", "> ", "> > - [x] ", "\t> \t2. [ ] "])("preserves the prefix %s when deleting and selecting", (prefix) => {
+		const text = prefix + "First sentence. Next.", at = prefix.length + 5;
+		const start = new MockEditor(text, { line: 0, ch: at });
+		deleteToBoundary(start.asEditor(), "start", pattern());
+		expect(start.getValue()).toBe(prefix + " sentence. Next.");
+		const end = new MockEditor(text, { line: 0, ch: 0 });
+		deleteToBoundary(end.asEditor(), "end", pattern());
+		expect(end.getValue()).toBe(prefix + " Next.");
+		const selected = new MockEditor(text, { line: 0, ch: 0 });
+		selectToBoundary(selected.asEditor(), "end", pattern());
+		expect(selected.getSelection()).toBe("First sentence.");
+	});
+	it("does not jump to the end of the first line when moving from its prefix", () => {
+		const editor = new MockEditor("> > Plain text", { line: 0, ch: 0 });
+		moveToStartOfCurrentSentence(editor.asEditor(), pattern());
+		expect(editor.getCursor()).toEqual({ line: 0, ch: 4 });
+	});
+});
+
+describe("cached matcher compatibility", () => {
+	it("reuses matching behavior without changing the caller's iteration state", () => {
+		const expression = /[a-z]+/g; expression.lastIndex = 4;
+		expect(sentenceRanges("one TWO", expression)).toEqual([{ from: 0, to: 3 }]);
+		expect(expression.lastIndex).toBe(4);
+		expect(sentenceRanges("one TWO", /[A-Z]+/g)).toEqual([{ from: 4, to: 7 }]);
+		expect(sentenceRanges("one TWO", expression)).toEqual([{ from: 0, to: 3 }]);
+		expect(expression.lastIndex).toBe(4);
+	});
+});

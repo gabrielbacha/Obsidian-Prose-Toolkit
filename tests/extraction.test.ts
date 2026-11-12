@@ -26,6 +26,7 @@ function memoryEnvironment(initialPaths: string[] = []) {
 			if (files.has(path)) throw new Error("overwrite attempted");
 			files.set(path, contents);
 		},
+		readFile: async (path) => files.get(path) ?? null,
 		openFile: async (path) => {
 			opened.push(path);
 		},
@@ -242,5 +243,128 @@ describe("extraction coordinator", () => {
 		expect(result.found).toBe(0);
 		expect(result.markdown).toBe("");
 		expect(memory.clipboard).toBe("");
+	});
+});
+
+describe("extraction request boundaries", () => {
+	it("retains full source paths for same-named notes and escapes link punctuation", async () => {
+		for (const folder of ["First folder", "Second folder"]) {
+			const memory = memoryEnvironment();
+			const source = { path: folder + "/A [note] #1.md", title: "A [note] #1" };
+			await coordinateExtraction("==Point==", source, settings({ createNewFile: true, createLinks: true, explodeIntoNotes: true, addFootnotes: true }), memory.environment);
+			const link = "[A \\[note\\] #1](<" + folder.replace(" ", "%20") + "/A%20%5Bnote%5D%20%231.md>)";
+			expect(memory.clipboard).toContain(link);
+			expect([...memory.files.values()].every((contents) => contents.includes(link))).toBe(true);
+		}
+	});
+	it("uses the initial source and settings while clipboard access is pending", async () => {
+		const memory = memoryEnvironment();
+		let release!: () => void;
+		memory.environment.writeClipboard = () => new Promise<void>((resolve) => { release = resolve; });
+		const initial = settings({ createNewFile: true, createLinks: true, explodeIntoNotes: true });
+		const source = { path: "Original/Source.md", title: "Source" };
+		const running = coordinateExtraction("==Point==", source, initial, memory.environment);
+		initial.createNewFile = false; initial.createLinks = false; initial.explodeIntoNotes = false;
+		source.path = "Changed/Source.md"; source.title = "Changed";
+		release();
+		const result = await running;
+		expect(result.mainFilePath).toBe("Highlights for Source.md");
+		expect(result.explodedCreated).toBe(1);
+		expect(memory.files.get("Point.md")).toContain("Original/Source.md");
+	});
+	it("retries racing create-only summary collisions without replacing either operation", async () => {
+		const memory = memoryEnvironment();
+		const results = await Promise.all([1, 2].map(() => coordinateExtraction("==Point==", "Source", settings({ createNewFile: true }), memory.environment)));
+		expect(results.map((result) => result.mainFilePath).sort()).toEqual(["Highlights for Source 2.md", "Highlights for Source.md"]);
+		expect(new Set(results.map((result) => result.operationId)).size).toBe(2);
+		for (const result of results) expect(memory.files.get(result.mainFilePath!)).toContain(result.operationId);
+	});
+	it("continues exploded creation after summary opening fails", async () => {
+		const memory = memoryEnvironment();
+		memory.environment.openFile = async () => { throw new Error("view unavailable"); };
+		const result = await coordinateExtraction("==One== ==Two==", "Source", settings({ createNewFile: true, createLinks: true, explodeIntoNotes: true }), memory.environment);
+		expect(result.mainFilePath).toBe("Highlights for Source.md");
+		expect(result.mainOpened).toBe(false);
+		expect(result.explodedCreated).toBe(2);
+		expect(result.outcomes.filter((outcome) => outcome.stage === "creation" && outcome.status === "complete")).toHaveLength(3);
+		expect(result.outcomes).toContainEqual(expect.objectContaining({ stage: "opening", status: "failed", path: "Highlights for Source.md" }));
+	});
+	it("returns discovery failures and continues other exploded notes", async () => {
+		const memory = memoryEnvironment(), original = { ...memory.environment };
+		memory.environment.fileExists = async (path) => { if (path === "Broken.md") throw new Error("index unavailable"); return original.fileExists(path); };
+		const result = await coordinateExtraction("==Broken== ==Working==", "Source", settings({ createNewFile: true, createLinks: true, explodeIntoNotes: true }), memory.environment);
+		expect(result.explodedCreated).toBe(1); expect(result.explodedFailed).toBe(1);
+		expect(result.outcomes).toContainEqual(expect.objectContaining({ stage: "discovery", path: "Broken.md", status: "failed" }));
+	});
+	it("confirms an accepted create with a lost response using the operation's exact contents", async () => {
+		const memory = memoryEnvironment(), original = { ...memory.environment };
+		memory.environment.createFile = async (path, contents) => { await original.createFile(path, contents); throw new Error("response lost"); };
+		const result = await coordinateExtraction("==Point==", "Source", settings({ createNewFile: true }), memory.environment);
+		expect(result.mainFilePath).toBe("Highlights for Source.md"); expect(memory.files.size).toBe(1);
+		expect(result.outcomes).toContainEqual(expect.objectContaining({ stage: "creation", status: "complete", message: "Creation confirmed after a lost response." }));
+	});
+	it("retains an uncertain target without creating a duplicate when read-back fails", async () => {
+		const memory = memoryEnvironment(), original = { ...memory.environment };
+		memory.environment.createFile = async (path, contents) => { await original.createFile(path, contents); throw new Error("response lost"); };
+		memory.environment.readFile = async () => { throw new Error("read unavailable"); };
+		const result = await coordinateExtraction("==Point==", "Source", settings({ createNewFile: true }), memory.environment);
+		expect(result.mainFilePath).toBeNull(); expect(result.mainUncertainPath).toBe("Highlights for Source.md"); expect(memory.files.size).toBe(1);
+		expect(result.outcomes).toContainEqual(expect.objectContaining({ stage: "creation", status: "uncertain" }));
+	});
+});
+
+describe("Markdown extraction context", () => {
+	it("ignores frontmatter, fenced and indented code, inline code and HTML comments", () => {
+		const tick = String.fromCharCode(96);
+		const source = [
+			"---", "title: ==metadata==", "---",
+			tick.repeat(3) + "md", "==fenced== <mark>literal</mark>", tick.repeat(3),
+			"    ==indented==",
+			tick + "==inline==" + tick,
+			"<!-- ==comment== -->",
+			"Normal ==visible== and **bold**.",
+		].join("\n");
+		expect(extractHighlights(source, true).map((item) => item.content)).toEqual(["visible", "bold"]);
+	});
+	it("does not pair escaped delimiters or unrelated Markdown blocks", () => {
+		const source = "\\==literal==\n\n==open\n\nclose==\n\n- ==first\n- last==\n\n==good==";
+		expect(extractHighlights(source, false).map((item) => item.content)).toEqual(["good"]);
+	});
+	it("retains attributed marks, soft line breaks and nested bold precedence", () => {
+		const source = "<mark class=\"yellow\">marked\ntext</mark>\n\n==**bold point**==";
+		expect(extractHighlights(source, true).map((item) => item.content)).toEqual(["marked text", "**bold point**"]);
+	});
+});
+
+describe("HTML prose eligibility", () => {
+	it("ignores attribute syntax while preserving explicit mark contents", () => {
+		const source = "<span title=\"==not prose==\">plain</span> <mark title=\"greater > than\">visible</mark>";
+		expect(extractHighlights(source, false).map((item) => item.content)).toEqual(["visible"]);
+	});
+	it("does not treat a quoted mark tag inside another attribute as a highlight", () => {
+		const source = "<span title='<mark>not prose</mark>'>plain</span> ==visible==";
+		expect(extractHighlights(source, false).map((item) => item.content)).toEqual(["visible"]);
+	});
+});
+
+describe("cancelled extraction publication", () => {
+	it("keeps an acknowledged note and stops before later creations", async () => {
+		const memory = memoryEnvironment(), original = { ...memory.environment }, controller = new AbortController();
+		memory.environment.createFile = async (path, contents) => { await original.createFile(path, contents); controller.abort(); };
+		const result = await coordinateExtraction("==One== ==Two==", "Source", settings({ createNewFile: true, createLinks: true, explodeIntoNotes: true }), memory.environment, { signal: controller.signal });
+		expect(result.cancelled).toBe(true); expect(result.mainFilePath).toBe("Highlights for Source.md");
+		expect(memory.files.size).toBe(1); expect(result.explodedCreated).toBe(0); expect(memory.opened).toHaveLength(0);
+	});
+});
+
+describe("accepted highlight work limits", () => {
+	it("does not count suppressed inner bold as extracted output", () => {
+		const text = "==" + "**inner** ".repeat(15000).trimEnd() + "==";
+		const result = extractHighlights(text, true, 1);
+		expect(result).toHaveLength(1); expect(result[0].kind).toBe("equals"); expect(result[0].content).toContain("**inner**");
+	});
+	it("retains leftmost precedence when delimiter kinds overlap", () => {
+		expect(extractHighlights("==A **B== C**", true).map((item) => item.content)).toEqual(["A **B"]);
+		expect(extractHighlights("**A ==B** C==", true).map((item) => item.content)).toEqual(["A ==B"]);
 	});
 });

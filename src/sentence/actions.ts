@@ -5,6 +5,7 @@
  */
 import type { Editor } from "obsidian";
 import {
+	type SentencePattern,
 	linePosition,
 	listPrefixLength,
 	nextNonEmptyLine,
@@ -28,14 +29,14 @@ function skipSpaces(text: string, character: number, direction: Boundary): numbe
 export function deleteToBoundary(
 	editor: Editor,
 	boundary: Boundary,
-	pattern: RegExp,
+	pattern: SentencePattern,
 ): void {
 	const original = editor.getCursor();
 	const text = editor.getLine(original.line);
 	const searchCharacter = skipSpaces(text, original.ch, boundary);
 	const sentence = sentenceAt(text, searchCharacter, pattern);
 	if (!sentence) return;
-	const from = boundary === "start" ? sentence.from : original.ch;
+	const from = boundary === "start" ? sentence.from : Math.max(listPrefixLength(text), original.ch);
 	const to = boundary === "start" ? original.ch : sentence.to;
 	if (to <= from) return;
 	editor.replaceRange("", linePosition(original.line, from), linePosition(original.line, to));
@@ -45,7 +46,7 @@ export function deleteToBoundary(
 export function selectToBoundary(
 	editor: Editor,
 	boundary: Boundary,
-	pattern: RegExp,
+	pattern: SentencePattern,
 ): void {
 	const cursor = editor.getCursor();
 	const text = editor.getLine(cursor.line);
@@ -58,18 +59,19 @@ export function selectToBoundary(
 		return;
 	}
 	const target = boundary === "start" ? sentence.from : sentence.to;
-	editor.setSelection(cursor, linePosition(cursor.line, target));
+	editor.setSelection(linePosition(cursor.line, Math.max(listPrefixLength(text), cursor.ch)), linePosition(cursor.line, target));
 }
 
 export function moveToStartOfCurrentSentence(
 	editor: Editor,
-	pattern: RegExp,
+	pattern: SentencePattern,
 ): void {
 	let cursor = editor.getCursor();
 	let text = editor.getLine(cursor.line);
 	const prefixLength = listPrefixLength(text);
 	if (cursor.ch === 0 || (prefixLength > 0 && cursor.ch === prefixLength)) {
 		const previous = previousNonEmptyLine(editor, cursor.line);
+		if (previous === cursor.line) { editor.setCursor(linePosition(cursor.line, prefixLength)); return; }
 		editor.setCursor(linePosition(previous, editor.getLine(previous).length));
 		cursor = editor.getCursor();
 		text = editor.getLine(cursor.line);
@@ -83,7 +85,7 @@ export function moveToStartOfCurrentSentence(
 
 export function moveToStartOfNextSentence(
 	editor: Editor,
-	pattern: RegExp,
+	pattern: SentencePattern,
 ): void {
 	const cursor = editor.getCursor();
 	const text = editor.getLine(cursor.line);
@@ -107,18 +109,16 @@ export function moveToStartOfNextSentence(
 	editor.setCursor(linePosition(cursor.line, target));
 }
 
-export function selectSentence(editor: Editor, pattern: RegExp): void {
+export function selectSentence(editor: Editor, pattern: SentencePattern): void {
 	const cursor = editor.getCursor();
 	const text = editor.getLine(cursor.line);
-	const offset = listPrefixLength(text);
-	const processed = text.slice(offset);
-	const sentence = sentenceRanges(processed, pattern).find(
-		(range) => cursor.ch <= offset + range.to,
+	const sentence = sentenceRanges(text, pattern).find(
+		(range) => cursor.ch <= range.to,
 	);
 	if (!sentence) return;
 	editor.setSelection(
-		linePosition(cursor.line, offset + sentence.from),
-		linePosition(cursor.line, offset + sentence.to),
+		linePosition(cursor.line, sentence.from),
+		linePosition(cursor.line, sentence.to),
 	);
 }
 

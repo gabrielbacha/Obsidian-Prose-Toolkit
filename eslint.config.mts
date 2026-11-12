@@ -34,9 +34,20 @@ export default defineConfig([
 		},
 	},
 	{
-		files: ["tests/**/*.ts"],
+		files: ["tests/**/*.ts", "vitest.config.ts"],
 		rules: {
 			"obsidianmd/prefer-create-el": "off",
+			"obsidianmd/no-nodejs-modules": "off",
 		},
+	},
+	{
+		files: ["tests/**/*.mjs"],
+		languageOptions: { globals: { ...globals.browser, ...globals.node } },
+		rules: { "obsidianmd/hardcoded-config-path": "off", "obsidianmd/prefer-window-timers": "off" },
+	},
+
+	{
+		files: ["tests/text-worker.test.ts"],
+		rules: { "obsidianmd/prefer-window-timers": "off" },
 	},
 ]);

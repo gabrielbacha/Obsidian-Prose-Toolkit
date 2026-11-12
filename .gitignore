@@ -5,3 +5,8 @@ data.json
 .DS_Store
 coverage/
 
+
+.prose-toolkit-recovery-*.json*
+.prose-toolkit-bootstrap-*.json*
+
+.test-cache/

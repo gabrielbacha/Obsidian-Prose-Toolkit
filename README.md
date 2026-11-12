@@ -27,6 +27,10 @@ Requires Obsidian 1.13.0 or later.
 - Select the current sentence or editor line.
 - Customize the regular expression used to recognize sentences.
 
+Sentence commands preserve quote, ordered-list and task prefixes. They require one selection; multiple carets are refused rather than collapsed. Small default-pattern lines stay synchronous. Custom expressions and large lines run in a local worker with a 1.5-second job deadline. Cancel text operation stops owned pending work. Changed note, line or selection state prevents a late result from editing the new target.
+
+Sentence expressions are limited to 4,096 characters and sentence-editing lines to 1,000,000 characters. Extraction accepts notes up to 8,000,000 characters and at most 10,000 highlights, with a 32,000,000-character output budget. Limits fail explicitly; output is not silently truncated.
+
 ### Format while writing
 
 - Toggle `==highlight==` on the current sentence.
@@ -41,6 +45,10 @@ Requires Obsidian 1.13.0 or later.
 - Add a heading, source footnotes, links, and automatic capitalization.
 - Create a highlights note without overwriting an existing note.
 - Optionally create one linked note per highlight with source or contextual quotes.
+
+## Saved settings recovery
+
+Loading validates saved settings without rewriting them. Explicit changes preserve independent updates from another vault instance and refuse overlapping edits. A verified recovery file is prepared before publication. Invalid or unsupported settings remain unchanged until you confirm Restore default settings; recovery checks that the selected original has not changed. Recovery files stay in the actual plugin folder.
 
 ## Default shortcuts
 
@@ -60,7 +68,13 @@ Requires Obsidian 1.13.0 or later.
 
 ## Extraction behavior
 
-Run **Prose Toolkit: Extract highlights** in a Markdown note. Results are always copied to the clipboard. Settings can additionally create `Highlights for <note>.md` and exploded highlight notes.
+Run **Prose Toolkit: Extract highlights** in a Markdown note. Prose attempts to copy each result to the clipboard and reports a failed copy separately. Settings can additionally create `Highlights for <note>.md` and exploded highlight notes.
+
+Each extraction captures the source path, editor text, and settings before asynchronous work starts. Summary and exploded notes link to that full source path, so notes with the same name in different folders keep their own attribution. A changed setting does not alter an extraction already in progress.
+
+Code fences, indented and inline code, frontmatter, HTML comments, and HTML attributes are excluded from extraction. Explicit mark contents and ordinary prose remain eligible. Delimiters cannot pair across separate paragraphs, list items, or code blocks. Nested bold inside a highlight keeps its existing precedence.
+
+Note creation and opening are reported separately. A failed attempt to open a created note does not stop the remaining requested notes. An unconfirmed creation reports the target to check before retrying; it does not create another summary automatically.
 
 Prose Toolkit never overwrites a note:
 
@@ -91,7 +105,11 @@ npm run dev
 npm run check
 ```
 
-Release tags must exactly match the version in `manifest.json`. Attach `main.js`, `manifest.json`, and optional `styles.css` to each GitHub release.
+The bundle embeds the complete third-party notice. Release validation checks the built JavaScript, embedded notice, and exact tag/manifest version match before publication. Release tags must exactly match the version in `manifest.json`. Attach `main.js`, `manifest.json`, and optional `styles.css` to each GitHub release.
+
+The optional `npm run test:native` check launches the installed desktop app with a generated profile and vault. Set `OBSIDIAN_EXECUTABLE` to the app executable, `OBSIDIAN_ASAR` to the installed app bundle when required, and `PROSE_TOOLKIT_PLAYWRIGHT_PACKAGE` to a package.json with Playwright installed. The check proves the generated profile, vault, plugin identity and bundle hashes before editor actions, then closes and removes only its fixture.
+
+Native checks cover public editor selection, formatting, whitespace, undo and multiple-carets refusal; source-link identity; generated notes; adapter conflicts and settings recovery; and a rendered setting control. Extraction uses a fixture clipboard callback. System clipboard, physical mobile input and personal-profile acceptance remain separate checks.
 
 ## Privacy and security
 

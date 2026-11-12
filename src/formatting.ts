@@ -1,5 +1,5 @@
 import type { Editor, EditorPosition } from "obsidian";
-import { sentenceAt, type TextRange } from "./sentence/ranges";
+import { sentenceAt, type SentencePattern, type TextRange } from "./sentence/ranges";
 
 interface Wrapper {
 	open: string;
@@ -79,7 +79,7 @@ function enclosingWrapperRange(
 
 export function toggleSentenceFormat(
 	editor: Editor,
-	pattern: RegExp,
+	pattern: SentencePattern,
 	wrapper: Wrapper,
 ): void {
 	const cursor = editor.getCursor();

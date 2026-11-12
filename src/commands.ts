@@ -1,4 +1,5 @@
-import type { Editor, Plugin } from "obsidian";
+import type { SentencePattern } from "./sentence/ranges";
+import { Notice, type Editor, type Plugin } from "obsidian";
 import {
 	BOLD_HIGHLIGHT_WRAPPER,
 	BOLD_WRAPPER,
@@ -18,12 +19,27 @@ import {
 export interface CommandHost extends Plugin {
 	getSentencePattern(): RegExp;
 	extractActiveNote(): Promise<void>;
+	runSentenceAction?(editor: Editor, action: EditorAction, needsPrevious?: boolean): Promise<void>;
+	cancelTextOperation?(): void;
+	runEditorAction?(editor: Editor, action: (editor: Editor) => void): void;
 }
 
-type EditorAction = (editor: Editor, pattern: RegExp) => void;
+export type EditorAction = (editor: Editor, pattern: SentencePattern) => void;
 
-function sentenceAction(host: CommandHost, action: EditorAction) {
-	return (editor: Editor) => action(editor, host.getSentencePattern());
+function sentenceAction(host: CommandHost, action: EditorAction, needsPrevious = false) {
+	return (editor: Editor) => {
+		if (editor.listSelections().length > 1) { new Notice("Use one selection for prose commands."); return; }
+		if (host.runSentenceAction) return host.runSentenceAction(editor, action, needsPrevious);
+		return action(editor, host.getSentencePattern());
+	};
+}
+
+function lineAction(host: CommandHost, action: (editor: Editor) => void) {
+	return (editor: Editor) => {
+		if (editor.listSelections().length > 1) { new Notice("Use one selection for prose commands."); return; }
+		if (host.runEditorAction) return host.runEditorAction(editor, action);
+		action(editor);
+	};
 }
 
 export function registerCommands(host: CommandHost): void {
@@ -69,8 +85,7 @@ export function registerCommands(host: CommandHost): void {
 		name: "Toggle bold highlight on current line",
 		icon: "scan-line",
 		hotkeys: [{ modifiers: ["Mod", "Shift"], key: "P" }],
-		editorCallback: (editor) =>
-			toggleLineFormat(editor, BOLD_HIGHLIGHT_WRAPPER),
+		editorCallback: lineAction(host, (editor) => toggleLineFormat(editor, BOLD_HIGHLIGHT_WRAPPER)),
 	});
 
 	host.addCommand({
@@ -110,7 +125,7 @@ export function registerCommands(host: CommandHost): void {
 	host.addCommand({
 		id: "move-start-current-sentence",
 		name: "Move to start of current sentence",
-		editorCallback: sentenceAction(host, moveToStartOfCurrentSentence),
+		editorCallback: sentenceAction(host, moveToStartOfCurrentSentence, true),
 	});
 
 	host.addCommand({
@@ -132,6 +147,7 @@ export function registerCommands(host: CommandHost): void {
 		name: "Select current line",
 		icon: "scan-text",
 		hotkeys: [{ modifiers: ["Mod"], key: "G" }],
-		editorCallback: selectCurrentLine,
+		editorCallback: lineAction(host, selectCurrentLine),
 	});
+	host.addCommand({ id: "cancel-text-operation", name: "Cancel text operation", callback: () => host.cancelTextOperation?.() });
 }

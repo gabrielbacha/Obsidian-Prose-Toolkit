@@ -1,4 +1,5 @@
 import type { ExtractedHighlight } from "./parser";
+import { sourceLink, sourceTitle, type ExtractionSource } from "./source";
 import type { ProseToolkitSettings } from "../settings";
 
 export interface RenderedHighlight {
@@ -27,7 +28,7 @@ export function sanitizeNoteBasename(value: string): string {
 
 export function renderExtraction(
 	extracted: ExtractedHighlight[],
-	sourceBasename: string,
+	source: ExtractionSource | string,
 	settings: ProseToolkitSettings,
 ): RenderedExtraction {
 	const highlights = extracted.map((item) => {
@@ -48,7 +49,7 @@ export function renderExtraction(
 
 	const sections: string[] = [];
 	const heading = settings.headlineText
-		.replaceAll("$NOTE_TITLE", sourceBasename)
+		.replaceAll("$NOTE_TITLE", sourceTitle(source))
 		.trim();
 	if (heading.length > 0) sections.push(`## ${heading}`);
 
@@ -61,7 +62,7 @@ export function renderExtraction(
 	}
 
 	if (settings.addFootnotes && renderedItems.length > 0) {
-		sections.push(`[^1]: [[${sourceBasename}]]`);
+		sections.push(`[^1]: ${sourceLink(source)}`);
 	}
 
 	return {

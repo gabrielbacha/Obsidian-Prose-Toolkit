@@ -69,3 +69,13 @@ describe("formatting commands", () => {
 		expect(mock.getCursor()).toEqual({ line: 0, ch: 6 });
 	});
 });
+
+describe("sentence formatting preserves Markdown structure", () => {
+	it.each(["- ", "2) ", "> > ", "\t> - [x] "])("formats only prose after %s", (prefix) => {
+		const editor = new MockEditor(prefix + "A sentence. Next.", { line: 0, ch: prefix.length + 3 });
+		toggleSentenceFormat(editor.asEditor(), pattern(), HIGHLIGHT_WRAPPER);
+		expect(editor.getValue()).toBe(prefix + "==A sentence.== Next.");
+		toggleSentenceFormat(editor.asEditor(), pattern(), HIGHLIGHT_WRAPPER);
+		expect(editor.getValue()).toBe(prefix + "A sentence. Next.");
+	});
+});
