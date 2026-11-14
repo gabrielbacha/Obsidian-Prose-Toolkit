@@ -9,6 +9,8 @@ Navigate, format, and extract prose in Obsidian without leaving your note.
     &nbsp;·&nbsp;
     <a href="https://mindfulapps.xyz/obsidian/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>More Obsidian plugins</strong></a>
     &nbsp;·&nbsp;
+    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Gabriel Bacha's website</strong></a>
+    &nbsp;·&nbsp;
     <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
   </p>
 </div>
@@ -131,6 +133,8 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
     <a href="https://mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer"><strong>Plugin page</strong></a>
     &nbsp;·&nbsp;
     <a href="https://mindfulapps.xyz/obsidian/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer"><strong>More Obsidian plugins</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer"><strong>Gabriel Bacha's website</strong></a>
     &nbsp;·&nbsp;
     <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
   </p>
