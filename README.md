@@ -7,6 +7,8 @@ Navigate, format, and extract prose in Obsidian without leaving your note.
   <p>
     <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
     &nbsp;·&nbsp;
+    <a href="https://www.mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit Mindful Apps</strong></a>
+    &nbsp;·&nbsp;
     <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
     &nbsp;·&nbsp;
     <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
@@ -129,6 +131,8 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
   <h3>Created by <a href="https://github.com/gabrielbacha">Gabriel Bacha</a></h3>
   <p>
     <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
+    &nbsp;·&nbsp;
+    <a href="https://www.mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit Mindful Apps</strong></a>
     &nbsp;·&nbsp;
     <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
     &nbsp;·&nbsp;
