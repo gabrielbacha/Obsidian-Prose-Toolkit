@@ -3,13 +3,11 @@
 Navigate, format, and extract prose in Obsidian without leaving your note.
 
 <div align="center">
-  <h3>Created by <a href="https://github.com/gabrielbacha">Gabriel Bacha</a></h3>
+  <h3>Made by <a href="https://mindfulapps.xyz/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header">Mindful Apps</a></h3>
   <p>
-    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
+    <a href="https://mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Plugin page</strong></a>
     &nbsp;·&nbsp;
-    <a href="https://www.mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit Mindful Apps</strong></a>
-    &nbsp;·&nbsp;
-    <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
+    <a href="https://mindfulapps.xyz/obsidian/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>More Obsidian plugins</strong></a>
     &nbsp;·&nbsp;
     <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
   </p>
@@ -128,13 +126,11 @@ MIT. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 ---
 
 <div align="center">
-  <h3>Created by <a href="https://github.com/gabrielbacha">Gabriel Bacha</a></h3>
+  <h3>Made by <a href="https://mindfulapps.xyz/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer">Mindful Apps</a></h3>
   <p>
-    <a href="https://www.gabrielbacha.com/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit gabrielbacha.com</strong></a>
+    <a href="https://mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer"><strong>Plugin page</strong></a>
     &nbsp;·&nbsp;
-    <a href="https://www.mindfulapps.xyz/prose-toolkit/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_header"><strong>Visit Mindful Apps</strong></a>
-    &nbsp;·&nbsp;
-    <a href="https://obsidian.md/plugins?search=Gabriel%20Bacha"><strong>Explore more Obsidian plugins</strong></a>
+    <a href="https://mindfulapps.xyz/obsidian/?utm_source=obsidian_community&amp;utm_medium=referral&amp;utm_campaign=obsidian_assets&amp;utm_content=prose_toolkit_readme_footer"><strong>More Obsidian plugins</strong></a>
     &nbsp;·&nbsp;
     <a href="https://github.com/gabrielbacha/Obsidian-Prose-Toolkit/issues/new?template=feature_request.yml"><strong>Request a feature</strong></a>
   </p>
